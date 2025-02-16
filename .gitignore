@@ -1,0 +1,31 @@
+# Diretórios do Maven
+target/
+*.iml
+*.ipr
+*.iws
+
+# Logs e relatórios
+logs/
+*.log
+hs_err_pid*
+replay_pid*
+
+# Configurações do VS Code
+.vscode/
+
+# Arquivos temporários do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de compilação e IDEs
+*.class
+*.jar
+*.war
+*.ear
+
+# Configurações do Quarkus
+.quarkus/
+
+# Arquivos de cache
+*.swp
+*.swo
