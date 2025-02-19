@@ -290,3 +290,79 @@ Caso ocorra um problema no console referente ao Testcontainers Ryuk, você pode 
 
 ```properties
 quarkus.test.containers.env-vars.TESTCONTAINERS_RYUK_DISABLED=true
+```
+### Adicionando os Métodos à Classe `VillainResource`
+
+Para adicionar os novos métodos à classe `VillainResource`, siga os passos abaixo:
+
+1. Abra o arquivo `VillainResource.java` no diretório `src/main/java/io/quarkus/workshop/superheroes/villain`.
+
+2. subtitua seu conteudo conforme os seguintes métodos e construtor da classe `VillainResource`:
+
+```java
+Logger logger;
+VillainService service;
+
+public VillainResource(Logger logger, VillainService service) {
+    this.service = service;
+    this.logger = logger;
+}
+
+@GET
+@Path("/random")
+public RestResponse<Villain> getRandomVillain() {
+    Villain villain = service.findRandomVillain();
+    logger.debug("Found random villain " + villain);
+    return RestResponse.ok(villain);
+}
+
+@GET
+public RestResponse<List<Villain>> getAllVillains() {
+    List<Villain> villains = service.findAllVillains();
+    logger.debug("Total number of villains " + villains.size());
+    return RestResponse.ok(villains);
+}
+
+@GET
+@Path("/{id}")
+public RestResponse<Villain> getVillain(@RestPath Long id) {
+    Villain villain = service.findVillainById(id);
+    if (villain != null) {
+        logger.debug("Found villain " + villain);
+        return RestResponse.ok(villain);
+    } else {
+        logger.debug("No villain found with id " + id);
+        return RestResponse.noContent();
+    }
+}
+
+@POST
+public RestResponse<Void> createVillain(@Valid Villain villain, @Context UriInfo uriInfo) {
+    villain = service.persistVillain(villain);
+    UriBuilder builder = uriInfo.getAbsolutePathBuilder().path(Long.toString(villain.id));
+    logger.debug("New villain created with URI " + builder.build().toString());
+    return RestResponse.created(builder.build());
+}
+
+@PUT
+public RestResponse<Villain> updateVillain(@Valid Villain villain) {
+    villain = service.updateVillain(villain);
+    logger.debug("Villain updated with new values " + villain);
+    return RestResponse.ok(villain);
+}
+
+@DELETE
+@Path("/{id}")
+public RestResponse<Void> deleteVillain(@RestPath Long id) {
+    service.deleteVillain(id);
+    logger.debug("Villain deleted with id " + id);
+    return RestResponse.noContent();
+}
+
+@GET
+@Path("/hello")
+@Produces(TEXT_PLAIN)
+public String hello() {
+    return "Hello Villain Resource";
+}
+```

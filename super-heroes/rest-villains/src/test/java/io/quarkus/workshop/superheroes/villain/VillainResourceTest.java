@@ -11,10 +11,10 @@ class VillainResourceTest {
     @Test
     void testHelloEndpoint() {
         given()
-          .when().get("/api/villains")
+          .when().get("/api/villains/hello")
           .then()
              .statusCode(200)
-             .body(is("Hello from Quarkus REST"));
+             .body(is("Hello Villain Resource"));
     }
 
 }
