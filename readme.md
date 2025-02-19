@@ -183,3 +183,80 @@ public static Villain findRandom() {
 }
 ```
 Este método é responsável por retornar um vilão aleatório da base de dados. Ele conta o número total de vilões, gera um número aleatório dentro desse intervalo e retorna o vilão correspondente.
+
+### Configurações iniciais o Banco de Dados
+
+Para configurar o banco de dados para o projeto `rest-villains`, siga os passos abaixo:
+
+1. Abra o arquivo `application.properties` no diretório `src/main/resources`.
+
+2. Adicione as seguintes configurações ao arquivo `application.properties`:
+
+```properties
+# drop and create the database at startup (use `update` to only update the schema)
+quarkus.hibernate-orm.database.generation=drop-and-create
+```
+
+### Adicionando a Classe de Serviço `VillainService`
+
+Para adicionar a classe de serviço `VillainService` ao projeto `rest-villains`, siga os passos abaixo:
+
+1. Crie um novo arquivo Java no diretório `src/main/java/io/quarkus/workshop/superheroes/villain` com o nome `VillainService.java`.
+
+2. Adicione o seguinte código ao arquivo `VillainService.java`:
+
+```java
+package io.quarkus.workshop.superheroes.villain;
+
+import static jakarta.transaction.Transactional.TxType.REQUIRED;
+import static jakarta.transaction.Transactional.TxType.SUPPORTS;
+
+import java.util.List;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+
+@ApplicationScoped
+@Transactional(REQUIRED)
+public class VillainService {
+
+    @Transactional(SUPPORTS)
+    public List<Villain> findAllVillains() {
+        return Villain.listAll();
+    }
+
+    @Transactional(SUPPORTS)
+    public Villain findVillainById(Long id) {
+        return Villain.findById(id);
+    }
+
+    @Transactional(SUPPORTS)
+    public Villain findRandomVillain() {
+        Villain randomVillain = null;
+        while (randomVillain == null) {
+            randomVillain = Villain.findRandom();
+        }
+        return randomVillain;
+    }
+
+    public Villain persistVillain(@Valid Villain villain) {
+        villain.persist();
+        return villain;
+    }
+
+    public Villain updateVillain(@Valid Villain villain) {
+        Villain entity = Villain.findById(villain.id);
+        entity.name = villain.name;
+        entity.otherName = villain.otherName;
+        entity.level = villain.level;
+        entity.picture = villain.picture;
+        entity.powers = villain.powers;
+        return entity;
+    }
+
+    public void deleteVillain(Long id) {
+        Villain.deleteById(id);
+    }
+}
+```
