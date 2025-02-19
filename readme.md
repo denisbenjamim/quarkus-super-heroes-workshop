@@ -101,3 +101,85 @@ Para rodar o projeto `rest-villains`, siga os passos abaixo:
 O projeto estará disponível em [http://localhost:8080/api/villains](http://localhost:8080/api/villains).
 
 Se você acessar diretamente [http://localhost:8080](http://localhost:8080), encontrará a Dev UI do Quarkus, que fornece diversas informações úteis sobre a aplicação, como os endpoints disponíveis, configurações, métricas e muito mais. A Dev UI é uma ferramenta poderosa para desenvolvedores, permitindo uma visão detalhada e interativa do estado da aplicação durante o desenvolvimento.
+
+### Adicionando Extensões de Banco de Dados e ORM
+
+Para adicionar extensões de banco de dados e ORM ao projeto `rest-villains`, siga os passos abaixo:
+
+1. Navegue até o diretório `rest-villains` (se ainda não estiver lá):
+    ```sh
+    cd rest-villains
+    ```
+
+2. Execute o comando Maven para adicionar as extensões:
+    ```sh
+    ./mvnw quarkus:add-extension -Dextensions="jdbc-postgresql,hibernate-orm-panache,hibernate-validator"
+    ```
+
+Essas extensões adicionam suporte para PostgreSQL, Hibernate ORM com Panache e validação de Hibernate ao projeto.
+
+### Adicionando a Entidade `Villain`
+
+Para adicionar a entidade `Villain` ao projeto `rest-villains`, siga os passos abaixo:
+
+1. Crie um novo arquivo Java no diretório `src/main/java/io/quarkus/workshop/superheroes/villain` com o nome `Villain.java`.
+
+2. Adicione o seguinte código ao arquivo `Villain.java`:
+
+```java
+package io.quarkus.workshop.superheroes.villain;
+
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+@Entity
+public class Villain extends PanacheEntity {
+
+    @NotNull
+    @Size(min = 3, max = 50)
+    public String name;
+
+    public String otherName;
+
+    @NotNull
+    @Min(1)
+    public int level;
+
+    public String picture;
+
+    @Column(columnDefinition = "TEXT")
+    public String powers;
+
+    @Override
+    public String toString() {
+        return "Villain{" +
+            "id=" + id +
+            ", name='" + name + '\'' +
+            ", otherName='" + otherName + '\'' +
+            ", level=" + level +
+            ", picture='" + picture + '\'' +
+            ", powers='" + powers + '\'' +
+            '}';
+    }
+}
+```
+### Adicionando o Método findRandom()
+Para adicionar o método `findRandom()` à entidade `Villain`, siga os passos abaixo:
+
+Abra o arquivo `Villain.java` no diretório `src/main/java/io/quarkus/workshop/superheroes/villain`.
+
+Adicione o seguinte método à classe `Villain`:
+```java
+public static Villain findRandom() {
+    long countVillains = count();
+    Random random = new Random();
+    int randomVillain = random.nextInt((int) countVillains);
+    return findAll().page(randomVillain, 1).firstResult();
+}
+```
+Este método é responsável por retornar um vilão aleatório da base de dados. Ele conta o número total de vilões, gera um número aleatório dentro desse intervalo e retorna o vilão correspondente.
