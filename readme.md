@@ -260,3 +260,33 @@ public class VillainService {
     }
 }
 ```
+### Iniciando a Aplicação no Modo Dev
+
+Agora vamos iniciar a aplicação no modo dev. Desde que tenhamos Docker ou Podman instalados e configurados, o Quarkus irá fazer isso para nós. Sim, isso mesmo, não precisamos nos preocupar com detalhes como instalar ou configurar o banco de dados.
+
+Para iniciar a aplicação no modo dev, siga os passos abaixo:
+
+1. Navegue até o diretório `rest-villains` (se ainda não estiver lá):
+    ```sh
+    cd rest-villains
+    ```
+
+2. Abra um terminal e execute o comando para iniciar o projeto:
+    ```sh
+    ./mvnw quarkus:dev
+    ```
+
+O Quarkus irá automaticamente configurar e iniciar um contêiner Docker ou Podman com o banco de dados necessário para a aplicação. O projeto estará disponível em [http://localhost:8080/api/villains](http://localhost:8080/api/villains).
+
+Se você acessar diretamente [http://localhost:8080](http://localhost:8080), encontrará a Dev UI do Quarkus, que fornece diversas informações úteis sobre a aplicação, como os endpoints disponíveis, configurações, métricas e muito mais. A Dev UI é uma ferramenta poderosa para desenvolvedores, permitindo uma visão detalhada e interativa do estado da aplicação durante o desenvolvimento.
+
+### Desabilitando o Testcontainers Ryuk
+
+Caso ocorra um problema no console referente ao Testcontainers Ryuk, você pode desabilitá-lo usando a seguinte variável de ambiente:
+
+1. Abra o arquivo [application.properties](http://_vscodecontentref_/1) no diretório `src/main/resources`.
+
+2. Adicione a seguinte configuração ao arquivo [application.properties](http://_vscodecontentref_/2):
+
+```properties
+quarkus.test.containers.env-vars.TESTCONTAINERS_RYUK_DISABLED=true
