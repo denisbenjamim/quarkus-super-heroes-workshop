@@ -14,10 +14,7 @@ Este projeto é um exemplo de aplicação utilizando o framework Quarkus para cr
 
 ## Como Executar
 
-1. Clone o repositório:
-    ```sh
-    git clone <URL_DO_REPOSITORIO>
-    ```
+1. baixe o arquivo aqui `https://raw.githubusercontent.com/quarkusio/quarkus-workshops/refs/heads/main/quarkus-workshop-super-heroes/dist/quarkus-super-heroes-workshop.zip` e descompacte.
 
 2. Navegue até o diretório do projeto:
     ```sh
@@ -366,3 +363,197 @@ public String hello() {
     return "Hello Villain Resource";
 }
 ```
+
+### Adicionando Dados Iniciais
+
+Para adicionar dados iniciais ao projeto `rest-villains`, siga os passos abaixo:
+
+1. Crie um novo arquivo SQL no diretório `src/main/resources` com o nome `import.sql`.
+
+2. Adicione o seguinte conteúdo ao arquivo `import.sql` baixe a versão completa aqui `https://raw.githubusercontent.com/quarkusio/quarkus-workshops/refs/heads/main/quarkus-workshop-super-heroes/super-heroes/rest-villains/src/main/resources/import.sql`:
+
+```sql
+ALTER SEQUENCE villain_seq RESTART WITH 50;
+
+INSERT INTO villain(id, name, otherName, picture, powers, level)
+VALUES (nextval('villain_seq'), 'Buuccolo', 'Majin Buu',
+        'https://www.superherodb.com/pictures2/portraits/10/050/15355.jpg',
+        'Accelerated Healing, Adaptation, Agility, Flight, Immortality, Intelligence, Invulnerability, Reflexes, Self-Sustenance, Size Changing, Spatial Awareness, Stamina, Stealth, Super Breath, Super Speed, Super Strength, Teleportation',
+        22);
+INSERT INTO villain(id, name, otherName, picture, powers, level)
+VALUES (nextval('villain_seq'), 'Darth Vader', 'Anakin Skywalker',
+        'https://www.superherodb.com/pictures2/portraits/10/050/10444.jpg',
+        'Accelerated Healing, Agility, Astral Projection, Cloaking, Danger Sense, Durability, Electrokinesis, Energy Blasts, Enhanced Hearing, Enhanced Senses, Force Fields, Hypnokinesis, Illusions, Intelligence, Jump, Light Control, Marksmanship, Precognition, Psionic Powers, Reflexes, Stealth, Super Speed, Telekinesis, Telepathy, The Force, Weapons Master',
+        13);
+INSERT INTO villain(id, name, otherName, picture, powers, level)
+VALUES (nextval('villain_seq'), 'The Rival (CW)', 'Edward Clariss',
+        'https://www.superherodb.com/pictures2/portraits/10/050/13846.jpg',
+        'Accelerated Healing, Agility, Bullet Time, Durability, Electrokinesis, Endurance, Enhanced Senses, Intangibility, Marksmanship, Phasing, Reflexes, Speed Force, Stamina, Super Speed, Super Strength',
+        10);
+```
+1. Agora inicie a aplicação 
+ ```sh
+    ./mvnw compile quarkus:dev
+```
+2. Então, abra seu navegador em `http://localhost:8080/api/villains`. Você deve ver muitos vilões…
+
+### Adicionando Métodos de Teste à Classe `VillainResourceTest`
+
+Para adicionar novos métodos de teste à classe `VillainResourceTest`, siga os passos abaixo:
+
+1. Abra o arquivo `VillainResourceTest.java` no diretório `src/test/java/io/quarkus/workshop/superheroes/villain`.
+
+2. Adicione os seguintes métodos à classe `VillainResourceTest`:
+
+```java
+@Test
+void shouldGetRandomVillain() {
+    given().when().get("/api/villains/random").then().statusCode(OK.getStatusCode()).contentType(APPLICATION_JSON);
+}
+
+@Test
+void shouldNotGetUnknownVillain() {
+    Long randomId = new Random().nextLong();
+    given().pathParam("id", randomId).when().get("/api/villains/{id}").then().statusCode(NO_CONTENT.getStatusCode());
+}
+
+@Test
+void shouldNotAddInvalidItem() {
+    Villain villain = new Villain();
+    villain.name = null;
+    villain.otherName = DEFAULT_OTHER_NAME;
+    villain.picture = DEFAULT_PICTURE;
+    villain.powers = DEFAULT_POWERS;
+    villain.level = 0;
+
+    given()
+        .body(villain)
+        .header(CONTENT_TYPE, JSON)
+        .header(ACCEPT, JSON)
+        .when()
+        .post("/api/villains")
+        .then()
+        .statusCode(BAD_REQUEST.getStatusCode());
+}
+
+@Test
+@Order(1)
+void shouldGetInitialItems() {
+    List<Villain> villains = get("/api/villains")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .extract()
+        .body()
+        .as(getVillainTypeRef());
+    assertEquals(NB_VILLAINS, villains.size());
+}
+
+@Test
+@Order(2)
+void shouldAddAnItem() {
+    Villain villain = new Villain();
+    villain.name = DEFAULT_NAME;
+    villain.otherName = DEFAULT_OTHER_NAME;
+    villain.picture = DEFAULT_PICTURE;
+    villain.powers = DEFAULT_POWERS;
+    villain.level = DEFAULT_LEVEL;
+
+    String location = given()
+        .body(villain)
+        .header(CONTENT_TYPE, JSON)
+        .header(ACCEPT, JSON)
+        .when()
+        .post("/api/villains")
+        .then()
+        .statusCode(CREATED.getStatusCode())
+        .extract()
+        .header("Location");
+    assertTrue(location.contains("/api/villains"));
+
+    // Stores the id
+    String[] segments = location.split("/");
+    villainId = segments[segments.length - 1];
+    assertNotNull(villainId);
+
+    given()
+        .pathParam("id", villainId)
+        .when()
+        .get("/api/villains/{id}")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .body("name", Is.is(DEFAULT_NAME))
+        .body("otherName", Is.is(DEFAULT_OTHER_NAME))
+        .body("level", Is.is(DEFAULT_LEVEL))
+        .body("picture", Is.is(DEFAULT_PICTURE))
+        .body("powers", Is.is(DEFAULT_POWERS));
+
+    List<Villain> villains = get("/api/villains")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .extract()
+        .body()
+        .as(getVillainTypeRef());
+    assertEquals(NB_VILLAINS + 1, villains.size());
+}
+
+@Test
+@Order(3)
+void testUpdatingAnItem() {
+    Villain villain = new Villain();
+    villain.id = Long.valueOf(villainId);
+    villain.name = UPDATED_NAME;
+    villain.otherName = UPDATED_OTHER_NAME;
+    villain.picture = UPDATED_PICTURE;
+    villain.powers = UPDATED_POWERS;
+    villain.level = UPDATED_LEVEL;
+
+    given()
+        .body(villain)
+        .header(CONTENT_TYPE, JSON)
+        .header(ACCEPT, JSON)
+        .when()
+        .put("/api/villains")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .body("name", Is.is(UPDATED_NAME))
+        .body("otherName", Is.is(UPDATED_OTHER_NAME))
+        .body("level", Is.is(UPDATED_LEVEL))
+        .body("picture", Is.is(UPDATED_PICTURE))
+        .body("powers", Is.is(UPDATED_POWERS));
+
+    List<Villain> villains = get("/api/villains")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .extract()
+        .body()
+        .as(getVillainTypeRef());
+    assertEquals(NB_VILLAINS + 1, villains.size());
+}
+
+@Test
+@Order(4)
+void shouldRemoveAnItem() {
+    given().pathParam("id", villainId).when().delete("/api/villains/{id}").then().statusCode(NO_CONTENT.getStatusCode());
+
+    List<Villain> villains = get("/api/villains")
+        .then()
+        .statusCode(OK.getStatusCode())
+        .contentType(APPLICATION_JSON)
+        .extract()
+        .body()
+        .as(getVillainTypeRef());
+    assertEquals(NB_VILLAINS, villains.size());
+}
+
+private TypeRef<List<Villain>> getVillainTypeRef() {
+    return new TypeRef<List<Villain>>() {
+        // Kept empty on purpose
+    };
+}
+```
+Agora execute os testes no modo dev `./mvnw test` eles devem passar
