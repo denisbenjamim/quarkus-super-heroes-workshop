@@ -1,5 +1,6 @@
 # Diretórios do Maven
 target/
+dist/
 *.iml
 *.ipr
 *.iws

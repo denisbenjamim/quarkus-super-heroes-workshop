@@ -25,38 +25,6 @@ Este projeto é um exemplo de aplicação utilizando o framework Quarkus para cr
     ```sh
     ./mvnw compile quarkus:dev
     ```
-
-## Endpoints Disponíveis
-
-### Super-Heróis
-
-- `GET /api/heroes`: Retorna a lista de super-heróis.
-- `POST /api/heroes`: Adiciona um novo super-herói.
-
-### Vilões
-
-- `GET /api/villains`: Retorna a lista de vilões.
-- `POST /api/villains`: Adiciona um novo vilão.
-
-## Contribuindo
-
-Se você deseja contribuir com este projeto, por favor, siga os passos abaixo:
-
-1. Faça um fork do repositório.
-2. Crie uma nova branch para sua feature ou correção de bug:
-    ```sh
-    git checkout -b minha-feature
-    ```
-3. Faça suas alterações e commit:
-    ```sh
-    git commit -m "Minha nova feature"
-    ```
-4. Envie suas alterações:
-    ```sh
-    git push origin minha-feature
-    ```
-5. Abra um Pull Request.
-
 ## Licença
 
 Este projeto está licenciado sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
@@ -557,3 +525,38 @@ private TypeRef<List<Villain>> getVillainTypeRef() {
 }
 ```
 Agora execute os testes no modo dev `./mvnw test` eles devem passar
+
+### Configurando o Banco de Dados no Modo de Produção
+
+No modo de produção, os serviços de desenvolvimento não serão usados. Precisamos configurar o aplicativo para conectar-se a um banco de dados real. A principal maneira de obter conexões com um banco de dados é usar uma fonte de dados. No Quarkus, a implementação pronta para uso de fonte de dados e pool de conexões é o Agroal.
+
+Para configurar o acesso ao banco de dados no modo de produção, siga os passos abaixo:
+
+1. Abra o arquivo `application.properties` no diretório `src/main/resources`.
+
+2. Adicione as seguintes configurações ao arquivo `application.properties` para o modo de produção:
+
+```properties
+# Configurações do banco de dados PostgreSQL para o modo de produção
+%prod.quarkus.datasource.username=superbad
+%prod.quarkus.datasource.password=superbad
+%prod.quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5432/villains_database
+%prod.quarkus.hibernate-orm.sql-load-script=import.sql
+```
+`%prod`indica que a propriedade é usada somente quando o aplicativo é executado com o perfil fornecido. Configuramos o acesso ao banco de dados e forçamos a inicialização dos dados (que teria sido desabilitada por padrão no modo prod )
+
+### Executando a infraestrutura
+Antes de prosseguir, certifique-se de executar a infraestrutura. Para executar este serviço, você precisa de um banco de dados. Vamos usar o Docker e o docker compose para facilitar a instalação dessa infraestrutura.
+
+Você já deve ter instalado a infraestrutura no diretório `infrastructure`.
+
+Agora, basta executar `docker compose -f docker-compose.yaml up -d` ou `podman compose -f docker-compose.yaml up -d` no diretório `infrastructure`. Você deve ver alguns logs acontecendo e então todos os contêineres são iniciados.
+
+Durante o workshop, deixe todos os contêineres funcionando. Então, depois do workshop, lembre-se de desligá-los usando: `docker compose -f docker-compose.yaml down` ou `podman compose -f docker-compose.yaml down`.
+
+### Empacotando e executando o aplicativo
+Pare o modo dev e execute: `./mvnw package`.
+
+O aplicativo empacotado estara em `target/quarkus-app`, execute-o usando: `java -jar target/quarkus-app/quarkus-run.jar`.
+
+Abra seu navegador em http://localhost:8080/api/villains e verifique se ele exibe o conteúdo esperado. Uma vez feito isso, pare o aplicativo usando `CTRL+C`

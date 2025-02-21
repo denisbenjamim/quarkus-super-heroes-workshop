@@ -128,8 +128,8 @@
             </activation>
             <modules>
                 <module>super-heroes/rest-villains</module>
-                <module>super-heroes/rest-heroes</module>
-                <module>super-heroes/rest-fights</module>
+                <!-- <module>super-heroes/rest-heroes</module> -->
+                <!-- <module>super-heroes/rest-fights</module> -->
             </modules>
         </profile>
         <profile>
