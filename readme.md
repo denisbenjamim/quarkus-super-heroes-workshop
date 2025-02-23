@@ -603,3 +603,38 @@ Ela pode ser configurada via variável de ambiente ou no arquivo `application.pr
 ## Configuration for the REST API
 level.multiplier=0.5
 ```
+
+### Testando a Propriedade `level.multiplier`
+
+Para testar a nova propriedade `level.multiplier`, siga os passos abaixo:
+
+1. Certifique-se de que a aplicação está em execução na porta 8084.
+
+2. Utilize o seguinte JSON para criar um novo vilão:
+
+```json
+{
+  "level": 5,
+  "name": "Super Bad",
+  "powers": "Agility, Longevity"
+}
+```
+3. Faça uma requisição `POST` para http://localhost:8084/api/villains, passando o json no body da request. 
+
+4. Vai receber `201 Created` e o header `location` tera o link para consulta deste novo recurso inserido exemplo `http://localhost:8084/api/villains/582`.
+
+5. Observe que o nível do vilão será reduzido de acordo com o valor configurado para `level.multiplier`. Por exemplo, se `level.multiplier` estiver configurado como `0.5`, o nível do vilão será `2.5` (arredondado para 2)
+
+```json
+{
+  "id": 582,
+  "name": "Super Bad",
+  "otherName": null,
+  "level": 2,
+  "picture": null,
+  "powers": "Agility, Longevity"
+}
+```
+
+Esta configuração garante que o nível dos vilões seja ajustado de acordo com o multiplicador definido, evitando que o código quebre caso a propriedade não seja informada no arquivo `application.properties` ou via variável de ambiente.
+
