@@ -5,6 +5,8 @@ import static jakarta.transaction.Transactional.TxType.SUPPORTS;
 
 import java.util.List;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -12,7 +14,7 @@ import jakarta.validation.Valid;
 @ApplicationScoped
 @Transactional(REQUIRED)
 public class VillainService {
-
+    @ConfigProperty(name = "level.multiplier", defaultValue="1.0") double levelMultiplier;
 
     @Transactional(SUPPORTS)
     public List<Villain> findAllVillains() {
@@ -34,6 +36,7 @@ public class VillainService {
     }
 
     public Villain persistVillain(@Valid Villain villain) {
+        villain.level = (int) (villain.level * levelMultiplier);
         villain.persist();
         return villain;
     }

@@ -560,3 +560,46 @@ Pare o modo dev e execute: `./mvnw package`.
 O aplicativo empacotado estara em `target/quarkus-app`, execute-o usando: `java -jar target/quarkus-app/quarkus-run.jar`.
 
 Abra seu navegador em http://localhost:8080/api/villains e verifique se ele exibe o conteúdo esperado. Uma vez feito isso, pare o aplicativo usando `CTRL+C`
+
+### Modificando a Porta Padrão de Villains para 8084
+
+Para evitar conflitos com outros microserviços, vamos modificar a porta padrão para 8084. Siga os passos abaixo:
+
+1. Abra o arquivo `application.properties` no diretório `src/main/resources`.
+
+2. Adicione a seguinte configuração ao arquivo `application.properties`:
+
+```properties
+## HTTP configuration
+quarkus.http.port=8084
+```
+
+### Propriedade `level.multiplier`
+
+A propriedade `level.multiplier` é usada na classe `VillainService` para ajustar o nível dos vilões. Será utilizada no método `persistVillain`. 
+
+```java
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+//...
+@ConfigProperty(name = "level.multiplier", defaultValue="1.0")
+double levelMultiplier;
+//...
+public Villain persistVillain(@Valid Villain villain) {
+    villain.level = (int) (villain.level * levelMultiplier);
+    villain.persist();
+    return villain;
+}
+```
+Ela pode ser configurada via variável de ambiente ou no arquivo `application.properties`.
+
+#### Configurando via `application.properties`
+
+1. Abra o arquivo `application.properties` no diretório `src/main/resources`.
+
+2. Adicione a seguinte configuração ao arquivo `application.properties`:
+
+```properties
+## Configuration for the REST API
+level.multiplier=0.5
+```
